@@ -52,14 +52,14 @@ namespace MtmMath {
             for (int i = 0; i < ms.getRowsNum(); ++i) {
                 for (int j = 0; j < i ; ++j) {
                     if(this->matrix[i][j] != 0){
-                        not_down = true;
+                        not_upper = true;
                     }
                 }
             }
             for (int i = 0; i < ms.getRowsNum(); ++i) {
                 for (int j = i+1 ; j < ms.getColumnsNum() ; ++j) {
                     if(this->matrix[i][j] != 0){
-                        not_upper = true;
+                        not_down = true;
                     }
                 }
             }
@@ -117,7 +117,7 @@ namespace MtmMath {
             this->c = dim.getCol();
             return;
         }
-        virtual T& getElement(int i, int j){
+        virtual T& getElement(const int i, const int j){
             if(is_upper){
                 if(i > j){
                     throw MtmMath::MtmExceptions::AccessIllegalElement();
@@ -129,6 +129,7 @@ namespace MtmMath {
             }
             return this->matrix[i][j];
         }
+
         void transpose() override {
             if(is_upper){
                 is_upper = false;
@@ -140,15 +141,15 @@ namespace MtmMath {
 
         ~MtmMatTriag() = default;
     };
-    template <typename T>
-    MtmMat<T> operator+(const MtmMatTriag<T>& m, const T& n) {
-        return MtmMat<T>(m) += MtmMat<T>(Dimensions(m.getRowsNum(),m.getColumnsNum()),n);
-    }
-
-    template <typename T>
-    MtmMat<T> operator+(const T& n, const MtmMatTriag<T>& m) { // why it doesn't identify the up one?
-        return MtmMat<T>(m) += MtmMat<T>(Dimensions(m.getRowsNum(),m.getColumnsNum()),n);
-    }
+//    template <typename T>
+//    MtmMat<T> operator+(const MtmMatTriag<T>& m, const T& n) {
+//        return MtmMat<T>(m) += MtmMat<T>(Dimensions(m.getRowsNum(),m.getColumnsNum()),n);
+//    }
+//
+//    template <typename T>
+//    MtmMat<T> operator+(const T& n, const MtmMatTriag<T>& m) { // why it doesn't identify the up one?
+//        return MtmMat<T>(m) += MtmMat<T>(Dimensions(m.getRowsNum(),m.getColumnsNum()),n);
+//    }
 
 }
 

@@ -240,7 +240,7 @@ namespace MtmMath {
             }
             return (*this);
         }
-        virtual T& getElement(int i, int j){
+        virtual T& getElement(const int i, const int j){
             return matrix[i][j];
         }
         class Inner{
@@ -248,35 +248,36 @@ namespace MtmMath {
             int row, col, num_cols;
             MtmMat* ptr;
         public:
-            Inner(MtmMat* pointer, T** arr, int i, int num_of_cols) : ptr(pointer), inn_arr(arr) , row(i) ,col(0), num_cols(num_of_cols){}
+            Inner(MtmMat<T>* pointer, T** arr, const int i, const int num_of_cols) : ptr(pointer), inn_arr(arr) , row(i) ,col(0), num_cols(num_of_cols){}
+            Inner(T** arr, const int i, const int num_of_cols) : ptr(NULL), inn_arr(arr) , row(i) ,col(0), num_cols(num_of_cols){}
             const T& operator[](const int j) const{
-                if(j >= num_cols){
+                if(j >= num_cols || j < 0){
                     throw MtmMath::MtmExceptions::AccessIllegalElement();
                 }
                 return inn_arr[row][j];
             }
 
             T& operator[](const int j) {
-                if(j >= num_cols){
+                if(j >= num_cols || j < 0){
                     throw MtmMath::MtmExceptions::AccessIllegalElement();
                 }
                 return ptr->getElement(row,j);
             }
         };
 
-        Inner operator[](int i) {
-            if(i >= r){
+        Inner operator[](const int i) {
+            if(i >= r || i < 0){
                 throw MtmMath::MtmExceptions::AccessIllegalElement();
             }
             return Inner(this,matrix, i, c);
         }
 
-//        const Inner& operator[](const int i) const{
-//            if(i >= r){
-//                throw MtmMath::MtmExceptions::AccessIllegalElement();
-//            }
-//            return Inner(this,matrix, i, c);
-//        }
+        const Inner operator[](const int i) const{
+            if(i >= r || i < 0){
+                throw MtmMath::MtmExceptions::AccessIllegalElement();
+            }
+            return Inner(matrix, i, c);
+        }
 
         virtual ~MtmMat(){
             for (int k = 0; k < r ; ++k) {
@@ -292,7 +293,7 @@ namespace MtmMath {
             int curr_row, curr_column;
             MtmMat* objectPtr;
         public:
-            iterator(MtmMat* p, T** matrix, int r, int c): ptr(matrix),num_of_rows(r),num_of_columns(c),curr_row(0),curr_column(0),objectPtr(p){}
+            iterator(MtmMat* p, T** matrix, int r, int c, int cu_r, int cu_l): ptr(matrix),num_of_rows(r),num_of_columns(c),curr_row(cu_r),curr_column(cu_l),objectPtr(p){}
             virtual iterator& operator++(){
                 curr_row++;
                 if(curr_row > num_of_rows-1) {
@@ -316,17 +317,17 @@ namespace MtmMath {
         };
 
         iterator begin(){
-            return iterator(this,matrix, r, c);
+            return iterator(this, matrix, r, c, 0, 0);
         }
 
         iterator end(){
-            return iterator(this,matrix+(r*c), r, c);
+            return iterator(this, matrix, r, c, 0, c);
         }
 
         // nonzero_iterator class
         class nonzero_iterator : public MtmMat<T>::iterator{
         public:
-            nonzero_iterator(T** matrix, int r, int c, bool isBegin, MtmMat* p) : iterator(p, matrix, r, c){
+            nonzero_iterator(T** matrix, int r, int c, int cu_r, int cu_c, bool isBegin, MtmMat* p) : iterator(p, matrix, r, c, cu_r, cu_c){
                 if(isBegin && (this->ptr)[this->curr_row][this->curr_column] == 0){
                     ++(*this);
                 }
@@ -349,11 +350,11 @@ namespace MtmMath {
         };
 
         nonzero_iterator nzbegin(){
-            return nonzero_iterator(matrix, r, c, true,this);
+            return nonzero_iterator(matrix, r, c, 0, 0, true,this);
         }
 
         nonzero_iterator nzend(){
-            return nonzero_iterator(matrix+(r*c), r, c, false,this);
+            return nonzero_iterator(matrix, r, c, 0, c, false,this);
         }
 
 
@@ -384,6 +385,16 @@ namespace MtmMath {
             return *this;
         }
 
+        MtmMat operator-() {
+            MtmMat<T> new_matrix(*this);
+            for (int i = 0; i < new_matrix.getRowsNum() ; ++i) {
+                for (int j = 0; j < new_matrix.getColumnsNum() ; ++j) {
+                    new_matrix[i][j] = new_matrix[i][j] * (-1) ;
+                }
+            }
+            return new_matrix;
+        }
+
         friend MtmMat<T> operator*(const MtmMat<T>& m1, const MtmMat<T>& m2) {
             if(m1.getColumnsNum() != m2.getRowsNum()){
                 throw MtmExceptions::DimensionMismatch(m1.getRowsNum(),m1.getColumnsNum(),m2.getRowsNum(),m2.getColumnsNum());
@@ -410,7 +421,7 @@ namespace MtmMath {
 
     template <typename T>
     MtmMat<T> operator+(const T& n, const MtmMat<T>& m) { // why it doesn't identify the up one?
-        return MtmMat<T>(m) += MtmMat<T>(Dimensions(m.getRowsNum(),m.getColumnsNum()),n);
+        return m+n;
     }
 
     template <typename T>
@@ -443,9 +454,6 @@ namespace MtmMath {
 
     template <typename T>
     MtmMat<T> operator-(const MtmMat<T>& m1, const MtmMat<T>& m2) {
-        if(m1.getRowsNum() != m2.getRowsNum() || m1.getColumnsNum() != m2.getColumnsNum()){
-            throw MtmExceptions::DimensionMismatch(m1.getRowsNum(), m1.getColumnsNum(), m2.getRowsNum(), m2.getColumnsNum());
-        }
         return MtmMat<T>(m1) -= m2;
     }
 
@@ -484,14 +492,12 @@ namespace MtmMath {
 
     template <typename T>
     MtmMat<T> operator*(const MtmVec<T>& v1, const MtmMat<T>& m2) { // i think i should delete the refence in the return value
-        MtmMat<T> m1(v1);
-        return m1*m2;
+        return MtmMat<T>(v1)*m2;
     }
 
     template <typename T>
     MtmMat<T> operator*(const MtmMat<T>& m1, const MtmVec<T>& v2) { // i think i should delete the refence in the return value
-        MtmMat<T> m2(v2);
-        return m1*m2;
+        return m1*MtmMat<T>(v2);
     }
 
 }

@@ -167,7 +167,7 @@ namespace MtmMath {
             return vec[i];
         }
         T& operator[](int i) {
-            if(i >= size){
+            if(i >= size || i < 0){
                 throw MtmExceptions::AccessIllegalElement();
             }
             return vec[i];
@@ -227,6 +227,14 @@ namespace MtmMath {
             return (*this += new_v*(-1));
         }
 
+        MtmVec operator-(){
+            MtmVec<T> new_v(*this);
+            for (int i = 0; i < new_v.getSize() ; ++i) {
+                new_v[i] = new_v[i] * (-1) ;
+            }
+            return new_v;
+        }
+
         // Iterator &n non-zero Iterator
 
         class iterator{
@@ -235,7 +243,7 @@ namespace MtmMath {
             int length,curr_loc;
             MtmVec* objectPtr;
         public:
-            iterator(MtmVec* p, T* vec, int len): ptr(vec),length(len),curr_loc(0),objectPtr(p){}
+            iterator(MtmVec* p, T* vec, int len, int cu_lo): ptr(vec),length(len),curr_loc(cu_lo),objectPtr(p){}
             virtual iterator& operator++(){
                 // should i check if the curr_loc is >= length?
                 curr_loc++;
@@ -256,17 +264,17 @@ namespace MtmMath {
         };
 
         iterator begin(){
-            return iterator(this, vec, size);
+            return iterator(this, vec, size,0);
         }
 
         iterator end(){
-            return iterator(this, vec+size, size);
+            return iterator(this, vec, size, size);
         }
 
         // nonzero_iterator class
         class nonzero_iterator : public MtmVec<T>::iterator{
         public:
-            nonzero_iterator(T* vec, int len, bool isBegin, MtmVec* p) : iterator(p, vec, len){
+            nonzero_iterator(T* vec, int len, int cu_l, bool isBegin, MtmVec* p) : iterator(p, vec, len, cu_l){
                 if(isBegin && (this->ptr)[this->curr_loc] == 0){
                     ++(*this);
                 }
@@ -284,11 +292,11 @@ namespace MtmMath {
         };
 
         nonzero_iterator nzbegin(){
-            return nonzero_iterator(vec, size, true,this);
+            return nonzero_iterator(vec, size, 0, true, this);
         }
 
         nonzero_iterator nzend(){
-            return nonzero_iterator(vec+size, size, false,this);
+            return nonzero_iterator(vec, size, size, false, this);
         }
     };
 
@@ -299,7 +307,14 @@ namespace MtmMath {
 
     template <typename T>
     MtmVec<T> operator+(const MtmVec<T>& v1, const T& n){
-        return MtmVec<T>(v1) += MtmVec<T>(v1.getSize(),n);
+        if(v1.getOrientation() == vertical){
+            return MtmVec<T>(v1) += MtmVec<T>(v1.getSize(),n);
+        }
+        else{
+            MtmVec<T> v2(v1.getSize(),n);
+            v2.transpose();
+            return MtmVec<T>(v1) += v2;
+        }
     }
 
     template <typename T>
@@ -319,7 +334,14 @@ namespace MtmMath {
 
     template <typename T>
     MtmVec<T> operator-(const T& n, const MtmVec<T>& v1) {
-        return MtmVec<T>(v1.getSize(),n) -= MtmVec<T>(v1);
+        if(v1.getOrientation() == vertical){
+            return MtmVec<T>(v1.getSize(),n) -= v1;
+        }
+        else{
+            MtmVec<T> v2(v1.getSize(),n);
+            v2.transpose();
+            return v2 -= v1;
+        }
     }
 
     template <typename T>

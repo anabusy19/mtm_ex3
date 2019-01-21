@@ -7,7 +7,6 @@ namespace MtmMath {
     class Complex {
         double re,im;
     public:
-        Complex(int r);
         Complex(double r=0, double i=0);
         Complex(const Complex& c) ;
         Complex& operator=(const Complex&);

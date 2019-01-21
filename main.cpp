@@ -1499,21 +1499,21 @@ void mtmMatSqExceptionsTest() {
         cout<< e.what() <<endl;
     }
 
-//    try {
-//        *it_end = 0;
-//        assert(false);
-//    }
-//    catch (MtmExceptions::AccessIllegalElement& e){
-//        cout<< e.what() <<endl;
-//    }
-//
-//    try {
-//        cout << *it_end << endl;
-//        assert(false);
-//    }
-//    catch (MtmExceptions::AccessIllegalElement& e){
-//        cout<< e.what() <<endl;
-//    }
+    try {
+        *it_end = 0;
+        assert(false);
+    }
+    catch (MtmExceptions::AccessIllegalElement& e){
+        cout<< e.what() <<endl;
+    }
+
+    try {
+        cout << *it_end << endl;
+        assert(false);
+    }
+    catch (MtmExceptions::AccessIllegalElement& e){
+        cout<< e.what() <<endl;
+    }
 
     try {
         m5[0][3] = 4;
@@ -2037,20 +2037,20 @@ void mtmMatTriagIterators() {
     return;
 }
 
-//void mtmMatTriagConst() {
-//    const MtmMatTriag<int> m1(3,1);
-//    int array[9] = {1,0,0,1,1,0,1,1,1};
-//    int i = 0;
-//    for (size_t c = 0; c < 3; c++) {
-//        for (size_t r = 0; r < 3; r++) {
-//            assert(m1[r][c] == array[i]);
-//            array[i]=array[i];
-//            i++;
-//
-//        }
-//    }
-//    return;
-//}
+void mtmMatTriagConst() {
+    const MtmMatTriag<int> m1(3,1);
+    int array[9] = {1,0,0,1,1,0,1,1,1};
+    int i = 0;
+    for (size_t c = 0; c < 3; c++) {
+        for (size_t r = 0; r < 3; r++) {
+            assert(m1[r][c] == array[i]);
+            array[i]=array[i];
+            i++;
+
+        }
+    }
+    return;
+}
 
 void mtmMatTriagMethods() {
     MtmMatTriag<int> m1(3, 0);
@@ -2109,29 +2109,29 @@ void mtmMatTriagExceptionsTest() {
     MtmMatTriag<int> m5(3,0);
     MtmMatTriag<int> m6(2,0);
 
-//    try {
-//        m0 = m5 + m6;
-//        assert(false);
-//    }
-//    catch (MtmExceptions::DimensionMismatch& e){
-//        cout<< e.what() <<endl;
-//    }
+    try {
+        m0 = m5 + m6;
+        assert(false);
+    }
+    catch (MtmExceptions::DimensionMismatch& e){
+        cout<< e.what() <<endl;
+    }
 
-//    try {
-//        m0 = m5 - m6;
-//        assert(false);
-//    }
-//    catch (MtmExceptions::DimensionMismatch& e){
-//        cout<< e.what() <<endl;
-//    }
+    try {
+        m0 = m5 - m6;
+        assert(false);
+    }
+    catch (MtmExceptions::DimensionMismatch& e){
+        cout<< e.what() <<endl;
+    }
 
-//    try {
-//        m0 = m5 * m6;
-//        assert(false);
-//    }
-//    catch (MtmExceptions::DimensionMismatch& e){
-//        cout<< e.what() <<endl;
-//    }
+    try {
+        m0 = m5 * m6;
+        assert(false);
+    }
+    catch (MtmExceptions::DimensionMismatch& e){
+        cout<< e.what() <<endl;
+    }
 
     try {
         m5.reshape(Dimensions(3,1));
@@ -2208,21 +2208,21 @@ void mtmMatTriagExceptionsTest() {
         cout<< e.what() <<endl;
     }
 
-//    try {
-//        *it_end = 0;
-//        assert(false);
-//    }
-//    catch (MtmExceptions::AccessIllegalElement& e){
-//        cout<< e.what() <<endl;
-//    }
-//
-//    try {
-//        cout << *it_end << endl;
-//        assert(false);
-//    }
-//    catch (MtmExceptions::AccessIllegalElement& e){
-//        cout<< e.what() <<endl;
-//    }
+    try {
+        *it_end = 0;
+        assert(false);
+    }
+    catch (MtmExceptions::AccessIllegalElement& e){
+        cout<< e.what() <<endl;
+    }
+
+    try {
+        cout << *it_end << endl;
+        assert(false);
+    }
+    catch (MtmExceptions::AccessIllegalElement& e){
+        cout<< e.what() <<endl;
+    }
 
     try {
         m5[0][3] = 4;
@@ -2266,15 +2266,15 @@ void mtmMatTriagExceptionsTest() {
 
     MtmMatTriag<int> m20(3, 1);
     MtmMatTriag<int> m20l(3, 1, false);
-    MtmMatTriag<int> mc20(3, 1);
-    MtmMatTriag<int> mc20l(3, 1, false);
+    const MtmMatTriag<int> mc20(3, 1);
+    const MtmMatTriag<int> mc20l(3, 1, false);
 
-//    assert(mc20[1][0] == 0);
-//    assert(mc20[2][0] == 0);
-//    assert(mc20[2][1] == 0);
-//    assert(mc20l[0][1] == 0);
-//    assert(mc20l[0][2] == 0);
-//    assert(mc20l[1][2] == 0);
+    assert(mc20[1][0] == 0);
+    assert(mc20[2][0] == 0);
+    assert(mc20[2][1] == 0);
+    assert(mc20l[0][1] == 0);
+    assert(mc20l[0][2] == 0);
+    assert(mc20l[1][2] == 0);
 
     try {
         m20[1][0] = 1;
@@ -2636,20 +2636,6 @@ void mtmVecExceptionsTest() {
         cout<< e.what() <<endl;
     }
 
-//    try {
-//        m5.reshape(Dimensions(3,2));
-//        assert(false);
-//    }
-//    catch (MtmExceptions::ChangeMatFail& e){
-//        cout<< e.what() <<endl;
-//    }
-//
-//    try {
-//        m5.reshape(Dimensions(3,1));
-//    }
-//    catch (MtmExceptions::ChangeMatFail& e){
-//        cout<< e.what() <<endl;
-//    }
 
     try {
         m5.resize(Dimensions(4,2), 1);
@@ -2707,21 +2693,21 @@ void mtmVecExceptionsTest() {
         cout<< e.what() <<endl;
     }
 
-//    try {
-//        *it_end = 0;
-//        assert(false);
-//    }
-//    catch (MtmExceptions::AccessIllegalElement& e){
-//        cout<< e.what() <<endl;
-//    }
-//
-//    try {
-//        cout << *it_end << endl;
-//        assert(false);
-//    }
-//    catch (MtmExceptions::AccessIllegalElement& e){
-//        cout<< e.what() <<endl;
-//    }
+    try {
+        *it_end = 0;
+        assert(false);
+    }
+    catch (MtmExceptions::AccessIllegalElement& e){
+        cout<< e.what() <<endl;
+    }
+
+    try {
+        cout << *it_end << endl;
+        assert(false);
+    }
+    catch (MtmExceptions::AccessIllegalElement& e){
+        cout<< e.what() <<endl;
+    }
 
     try {
         m5[4] = 4;

@@ -7,8 +7,6 @@
 using namespace std;
 
 namespace MtmMath {
-    Complex::Complex(int r) : re(r), im(0) {}
-
     Complex::Complex(double r, double i) : re(r), im(i) {}
 
     Complex::Complex(const Complex& c) : re(c.re), im(c.im) {}
