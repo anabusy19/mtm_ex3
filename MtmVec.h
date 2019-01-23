@@ -6,7 +6,6 @@
 #include "Auxilaries.h"
 #include "Complex.h"
 #include <algorithm>
-
 using std::size_t;
 
 enum Orientation {vertical, horizontal};
@@ -27,9 +26,10 @@ namespace MtmMath {
         }
 
         /*
-         * Vector constructor, m is the number of elements in it and val is the initial value for the matrix elements
+         * Vector constructor, m is the number of elements in it.
+         * val is the initial value for the matrix elements
          */
-        explicit MtmVec(size_t m, const T& val=T()) : oi(vertical), size(m) { // should i put explicit?
+        explicit MtmVec(size_t m, const T& val=T()) : oi(vertical), size(m) {
             if(m <= 0){
                 throw MtmMath::MtmExceptions::IllegalInitialization();
             }
@@ -53,8 +53,10 @@ namespace MtmMath {
         }
 
         /*
-         * Function that get function object f and uses it's () operator on each element in the vectors.
-         * It outputs the function object's * operator after iterating on all the vector's elements
+         * Function that get function object f and uses it's () operator on
+         * each element in the vectors.
+         * It outputs the function object's * operator after iterating on all
+         * the vector's elements
          */
         template <typename Func>
         T vecFunc(Func& f) const{
@@ -69,39 +71,48 @@ namespace MtmMath {
          * Resizes a vector to dimension dim, new elements gets the value val.
          * Notice vector cannot transpose through this method.
          */
-        void resize(Dimensions dim, const T& val=T()){ // what exceptions should i check here?
+        void resize(Dimensions dim, const T& val=T()){
             if(dim.getCol() > 1 && dim.getRow() > 1 && this->oi == horizontal ){
-                throw MtmMath::MtmExceptions::ChangeMatFail(1, size, dim.getRow(), dim.getCol());
+                throw MtmMath::MtmExceptions::ChangeMatFail(1, size,
+                        dim.getRow(), dim.getCol());
             }
             if(dim.getCol() > 1 && dim.getRow() > 1 && this->oi == vertical ){
-                throw MtmMath::MtmExceptions::ChangeMatFail(size, 1, dim.getRow(), dim.getCol());
+                throw MtmMath::MtmExceptions::ChangeMatFail(size, 1,
+                        dim.getRow(), dim.getCol());
             }
-            if(dim.getCol() == 1 && dim.getRow() != 1 && this->oi == horizontal){
-                throw MtmMath::MtmExceptions::ChangeMatFail(1, size, dim.getRow(), dim.getCol());
+            if(dim.getCol() == 1 && dim.getRow()!= 1 && this->oi == horizontal){
+                throw MtmMath::MtmExceptions::ChangeMatFail(1, size,
+                        dim.getRow(), dim.getCol());
             }
             if(dim.getRow() == 1 && dim.getCol() != 1 && this->oi == vertical){
-                throw MtmMath::MtmExceptions::ChangeMatFail(size, 1, dim.getRow(), dim.getCol());
+                throw MtmMath::MtmExceptions::ChangeMatFail(size, 1,
+                        dim.getRow(), dim.getCol());
             }
-            if((dim.getCol() == 0 || dim.getRow() == 0) && this->oi == horizontal){
-                throw MtmMath::MtmExceptions::ChangeMatFail(1, size, dim.getRow(), dim.getCol());
+            if((dim.getCol()==0 || dim.getRow()==0) && this->oi == horizontal){
+                throw MtmMath::MtmExceptions::ChangeMatFail(1, size,
+                        dim.getRow(), dim.getCol());
             }
-            if((dim.getCol() == 0 || dim.getRow() == 0 ) && this->oi == vertical){
-                throw MtmMath::MtmExceptions::ChangeMatFail(size, 1, dim.getRow(), dim.getCol());
+            if((dim.getCol()==0 || dim.getRow()==0) && this->oi == vertical){
+                throw MtmMath::MtmExceptions::ChangeMatFail(size, 1,
+                        dim.getRow(), dim.getCol());
             }
             size_t new_size = std::max(dim.getCol(), dim.getRow());
             size_t min_size = std::min(size, new_size);
-
-            // i should check the allocation result
-            T* new_arr = new T[new_size];
-            for (size_t j = 0; j < min_size ; ++j) {
-                new_arr[j] = vec[j];
+            try{
+                T* new_arr = new T[new_size];
+                for (size_t j = 0; j < min_size ; ++j) {
+                    new_arr[j] = vec[j];
+                }
+                for (size_t i = min_size; i < new_size ; ++i) {
+                    new_arr[i] = val;
+                }
+                delete[] vec;
+                vec = new_arr;
+                size = new_size;
             }
-            for (size_t i = min_size; i < new_size ; ++i) {
-                new_arr[i] = val;
+            catch (std::bad_alloc& e){
+                throw MtmExceptions::OutOfMemory();
             }
-            delete[] vec;
-            vec = new_arr;
-            size = new_size;
         }
 
         /*
@@ -120,11 +131,16 @@ namespace MtmMath {
             delete[] vec;
             size = m.size;
             oi = m.oi;
-            vec = new T[size];
-            for (size_t i = 0; i < size ; ++i) {
-                vec[i] = m.vec[i];
+            try{
+                vec = new T[size];
+                for (size_t i = 0; i < size ; ++i) {
+                    vec[i] = m.vec[i];
+                }
+                return (*this);
             }
-            return (*this);
+            catch (std::bad_alloc& e){
+                throw MtmExceptions::OutOfMemory();
+            }
         }
 
         const T& operator[](const size_t& i) const {
@@ -210,7 +226,8 @@ namespace MtmMath {
             int length,curr_loc;
             MtmVec* objectPtr;
         public:
-            iterator(MtmVec* p, T* vec, int len, int cu_lo): ptr(vec),length(len),curr_loc(cu_lo),objectPtr(p){}
+            iterator(MtmVec* p, T* vec, int len, int cu_lo): ptr(vec),
+                    length(len),curr_loc(cu_lo),objectPtr(p){}
             virtual iterator& operator++(){
                 curr_loc++;
                 return (*this);
@@ -240,7 +257,8 @@ namespace MtmMath {
         // nonzero_iterator class
         class nonzero_iterator : public MtmVec<T>::iterator{
         public:
-            nonzero_iterator(T* vec, int len, int cu_l, bool isBegin, MtmVec* p) : iterator(p, vec, len, cu_l){
+            nonzero_iterator(T* vec, int len, int cu_l, bool isBegin,MtmVec* p):
+                            iterator(p, vec, len, cu_l){
                 if(isBegin && (this->ptr)[this->curr_loc] == 0){
                     ++(*this);
                 }

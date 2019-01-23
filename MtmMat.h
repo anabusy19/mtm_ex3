@@ -26,9 +26,11 @@ namespace MtmMath {
         }
 
         /*
-         * Matrix constructor, dim_t is the dimension of the matrix and val is the initial value for the matrix elements
+         * Matrix constructor, dim_t is the dimension of the matrix and val is
+         * the initial value for the matrix elements
          */
-        explicit MtmMat(Dimensions dim_t, const T& val=T()) : r(dim_t.getRow()), c(dim_t.getCol()){
+        explicit MtmMat(Dimensions dim_t, const T& val=T()) :
+                        r(dim_t.getRow()), c(dim_t.getCol()){
             if(dim_t.getRow() <= 0 || dim_t.getCol() <=0){
                 throw MtmExceptions::IllegalInitialization();
             }
@@ -57,7 +59,8 @@ namespace MtmMath {
             }
         }
 
-        explicit MtmMat(const MtmVec<T>& v):MtmMat(Dimensions(((v.getOrientation() == vertical) ? v.getSize() : 1 ),
+        explicit MtmMat(const MtmVec<T>& v) : MtmMat(
+                Dimensions(((v.getOrientation() == vertical) ? v.getSize() : 1),
                 ((v.getOrientation() == horizontal) ? v.getSize() : 1)),0){
             int s=0;
             for (size_t i = 0; i < r ; ++i) {
@@ -69,8 +72,10 @@ namespace MtmMath {
         }
 
         /*
-         * Function that get function object f and uses it's () operator on each element in the matrix columns.
-         * It outputs a vector in the size of the matrix columns where each element is the final output
+         * Function that get function object f and uses it's () operator on
+         * each element in the matrix columns.
+         * It outputs a vector in the size of the matrix columns where each
+         * element is the final output
          * by the function object's * operator
          */
         template <typename Func>
@@ -118,11 +123,13 @@ namespace MtmMath {
         }
 
         /*
-         * reshapes matrix so linear elements value are the same without changing num of elements.
+         * reshapes matrix so linear elements value are the same without
+         * changing num of elements.
          */
         virtual void reshape(Dimensions newDim){
             if(newDim.getCol()*newDim.getRow() != r*c ){
-                throw MtmExceptions::ChangeMatFail(r, c, newDim.getRow(), newDim.getCol());
+                throw MtmExceptions::ChangeMatFail(r, c, newDim.getRow(),
+                        newDim.getCol());
             }
             T** new_mat = new T*[newDim.getRow()] ;
             for(size_t i = 0 ; i < newDim.getRow() ; i++ ) {
@@ -156,26 +163,30 @@ namespace MtmMath {
         /*
          * Performs transpose operation on matrix
          */
-        virtual void transpose(){       // i should check if the new matrix allocation didn't fail
-            T** tr_mat = new T*[c] ;
-
-            for(size_t i = 0 ; i < c ; i++ ) {
-                tr_mat[i] = new T[r];
-            }
-
-            for(size_t i=0; i < r ; i++){
-                for(size_t j=0; j < c ; j++){
-                    tr_mat[j][i] = matrix[i][j];
+        virtual void transpose(){
+            try {
+                T **tr_mat = new T *[c];
+                for (size_t i = 0; i < c; i++) {
+                    tr_mat[i] = new T[r];
                 }
+
+                for (size_t i = 0; i < r; i++) {
+                    for (size_t j = 0; j < c; j++) {
+                        tr_mat[j][i] = matrix[i][j];
+                    }
+                }
+                for (size_t k = 0; k < r; ++k) {
+                    delete[] matrix[k];
+                }
+                delete[] matrix;
+                size_t tmp = c;
+                c = r;
+                r = tmp;
+                matrix = tr_mat;
             }
-            for (size_t k = 0; k < r ; ++k) {
-                delete[] matrix[k];
+            catch (std::bad_alloc& e){
+                throw MtmExceptions::OutOfMemory();
             }
-            delete[] matrix;
-            size_t tmp = c;
-            c = r;
-            r = tmp;
-            matrix = tr_mat;
         }
 
         MtmMat& operator=(const MtmMat& m) {
