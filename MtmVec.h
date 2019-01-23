@@ -2,7 +2,6 @@
 #define EX3_MTMVEC_H
 
 #include <vector>
-#include <windef.h>
 #include "MtmExceptions.h"
 #include "Auxilaries.h"
 #include "Complex.h"
@@ -16,41 +15,10 @@ namespace MtmMath {
     template <typename T>
     class MtmVec {
         Orientation oi;
-        int size;
+        size_t size;
         T* vec;
     public:
-        bool dimTest(size_t row, size_t column) const {
-            if(oi == vertical){
-                if (row == size && column == 1) {
-                    return true;
-                } else {
-                    return false;
-                }
-            } else {
-                if (row == 1 && column == size) {
-                    return true;
-                } else {
-                    return false;
-                }
-            }
-        }
-
-
-        bool dataTest(std::vector<T> test_arr) const {
-            if (test_arr.size() != size) {
-                return false;
-            }
-            size_t index = 0;
-            for (size_t i = 0; i < size; i++) {
-                if (vec[i] != test_arr[index]) {
-                    return false;
-                }
-                index++;
-            }
-            return true;
-        }
-
-        int getSize() const {
+        size_t getSize() const {
             return size;
         }
 
@@ -61,26 +29,25 @@ namespace MtmMath {
         /*
          * Vector constructor, m is the number of elements in it and val is the initial value for the matrix elements
          */
-        MtmVec(size_t m, const T& val=T()) : oi(vertical), size(m) {
+        explicit MtmVec(size_t m, const T& val=T()) : oi(vertical), size(m) { // should i put explicit?
             if(m <= 0){
                 throw MtmMath::MtmExceptions::IllegalInitialization();
             }
             try{
                 this->vec = new T[size];
             }
-            catch (std::bad_alloc& excepObj){
+            catch (std::bad_alloc& e){
                 throw MtmExceptions::OutOfMemory();
             }
 
-            for (int i = 0; i < size; i++) {
+            for (size_t i = 0; i < size; i++) {
                 vec[i] = val;
             }
         }
 
-
         MtmVec(const MtmVec& m) : oi(m.oi), size(m.size){
             this->vec = new T[size];
-            for (int i = 0; i < size ; ++i) {
+            for (size_t i = 0; i < size ; ++i) {
                 this->vec[i] = m.vec[i];
             }
         }
@@ -92,7 +59,7 @@ namespace MtmMath {
         template <typename Func>
         T vecFunc(Func& f) const{
             Func copyFunc = f;
-            for(int i=0; i<size; i++){
+            for(size_t i=0; i<size; i++){
                 copyFunc(vec[i]);
             }
             return (*copyFunc);
@@ -121,20 +88,20 @@ namespace MtmMath {
             if((dim.getCol() == 0 || dim.getRow() == 0 ) && this->oi == vertical){
                 throw MtmMath::MtmExceptions::ChangeMatFail(size, 1, dim.getRow(), dim.getCol());
             }
-            int new_size = std::max(dim.getCol(), dim.getRow());
-            int min_size = std::min(size, new_size);
+            size_t new_size = std::max(dim.getCol(), dim.getRow());
+            size_t min_size = std::min(size, new_size);
 
+            // i should check the allocation result
             T* new_arr = new T[new_size];
-            for (int j = 0; j < min_size ; ++j) {
+            for (size_t j = 0; j < min_size ; ++j) {
                 new_arr[j] = vec[j];
             }
-            for (int i = min_size; i < new_size ; ++i) {
+            for (size_t i = min_size; i < new_size ; ++i) {
                 new_arr[i] = val;
             }
             delete[] vec;
             vec = new_arr;
             size = new_size;
-            return;
         }
 
         /*
@@ -154,19 +121,19 @@ namespace MtmMath {
             size = m.size;
             oi = m.oi;
             vec = new T[size];
-            for (int i = 0; i < size ; ++i) {
+            for (size_t i = 0; i < size ; ++i) {
                 vec[i] = m.vec[i];
             }
             return (*this);
         }
 
-        const T& operator[](int i) const {
+        const T& operator[](const size_t& i) const {
             if(i >= size){
                 throw MtmExceptions::AccessIllegalElement();
             }
             return vec[i];
         }
-        T& operator[](int i) {
+        T& operator[](const size_t& i) {
             if(i >= size || i < 0){
                 throw MtmExceptions::AccessIllegalElement();
             }
@@ -209,14 +176,14 @@ namespace MtmMath {
                     throw MtmExceptions::DimensionMismatch(1,size,1,v.size);
                 }
             }
-            for (int i = 0; i < size; ++i) {
+            for (size_t i = 0; i < size; ++i) {
                 vec[i] = vec[i]+v.vec[i];
             }
             return *this;
         }
 
         MtmVec& operator*=(const T& n) {
-            for (int i = 0; i < size ; ++i) {
+            for (size_t i = 0; i < size ; ++i) {
                 vec[i] = vec[i] * n ;
             }
             return *this;
@@ -229,7 +196,7 @@ namespace MtmMath {
 
         MtmVec operator-(){
             MtmVec<T> new_v(*this);
-            for (int i = 0; i < new_v.getSize() ; ++i) {
+            for (size_t i = 0; i < new_v.getSize() ; ++i) {
                 new_v[i] = new_v[i] * (-1) ;
             }
             return new_v;
@@ -245,7 +212,6 @@ namespace MtmMath {
         public:
             iterator(MtmVec* p, T* vec, int len, int cu_lo): ptr(vec),length(len),curr_loc(cu_lo),objectPtr(p){}
             virtual iterator& operator++(){
-                // should i check if the curr_loc is >= length?
                 curr_loc++;
                 return (*this);
             }
@@ -347,10 +313,7 @@ namespace MtmMath {
     template <typename T>
     MtmVec<T> operator*(const MtmVec<T>& v1, const T& n) {
         MtmVec<T> new_v(v1);
-        for (int i = 0; i < new_v.getSize() ; ++i) {
-            new_v[i] = new_v[i] * n ;
-        }
-        return new_v;
+        return new_v *= n ;
     }
 
     template <typename T>

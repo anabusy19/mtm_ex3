@@ -14,6 +14,7 @@ namespace MtmMath {
     Complex& Complex::operator=(const Complex &c) {
         this->re = c.re;
         this->im = c.im;
+		return *this;
     }
 
     Complex Complex::operator-() const {

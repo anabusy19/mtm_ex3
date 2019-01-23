@@ -7,8 +7,6 @@
 #include <cstring>
 #include "Auxilaries.h"
 
-using namespace std;
-
 namespace MtmMath {
     namespace MtmExceptions {
         class MtmExceptions : public std::exception {
@@ -47,13 +45,16 @@ namespace MtmMath {
          * in what() class function
          */
         class DimensionMismatch : public MtmExceptions {
-            int r_1,c_1,r_2,c_2;
+            size_t r_1,c_1,r_2,c_2;
             char* str;
         public:
-            DimensionMismatch(int r1, int c1, int r2, int c2) : r_1(r1), r_2(r2), c_1(c1), c_2(c2){
-                std::string tmp = "MtmError: Dimension mismatch: (" ;
-                tmp = tmp + std::to_string(r_1) + "," + std::to_string(c_1) + ") (";
-                tmp += to_string(r_2) + "," + to_string(c_2) + ")";
+            DimensionMismatch(size_t r1, size_t c1, size_t r2, size_t c2) : r_1(r1), c_1(c1), r_2(r2), c_2(c2){
+                std::string tmp = "MtmError: Dimension mismatch: " ;
+                Dimensions d1(r1,c1);
+                Dimensions d2(r2,c2);
+                tmp += d1.to_string();
+				tmp += " ";
+                tmp += d2.to_string();
                 const char* str2 = tmp.c_str();
                 this->str = new char[tmp.size()+1];
                 strcpy(str,str2);
@@ -61,7 +62,7 @@ namespace MtmMath {
             virtual const char* what() const throw() {
                 return str;
             }
-            ~DimensionMismatch(){
+            ~DimensionMismatch() throw() {
                 delete[](str);
             }
 
@@ -73,13 +74,16 @@ namespace MtmMath {
          * in what() class function
          */
         class ChangeMatFail : public MtmExceptions {
-            int r_1,c_1,r_2,c_2;
+            size_t r_1,c_1,r_2,c_2;
             char* str;
         public:
-            ChangeMatFail(int r, int c, int attemped_R, int attemped_C):r_1(r),c_1(c),r_2(attemped_R),c_2(attemped_C){
-                string tmp = "MtmError: Change matrix shape failed from ("  + to_string(r_1) + "," + to_string(c_1);
-                tmp +=  ") to (";
-                tmp += to_string(r_2) + "," + to_string(c_2) + ")";
+            ChangeMatFail(size_t r, size_t c, size_t attemped_R, size_t attemped_C):r_1(r),c_1(c),r_2(attemped_R),c_2(attemped_C){
+                std::string tmp = "MtmError: Change matrix shape failed from ";
+                Dimensions d1(r,c);
+                Dimensions d2(attemped_R,attemped_C);
+                tmp += d1.to_string();
+				tmp += " to ";
+                tmp += d2.to_string();
                 const char* str2 = tmp.c_str();
                 this->str = new char[tmp.size()+1];
                 strcpy(str,str2);
@@ -87,7 +91,7 @@ namespace MtmMath {
             virtual const char* what() const throw() {
                 return str;
             }
-            ~ChangeMatFail(){
+            ~ChangeMatFail() throw() {
                 delete[](str);
             }
         };

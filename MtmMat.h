@@ -15,61 +15,16 @@ namespace MtmMath {
     class MtmMat {
     protected:
         T** matrix;
-        int r,c;
+        size_t r,c;
     public:
-        int getRowsNum() const {
+        size_t getRowsNum() const {
             return r;
         }
 
-        int getColumnsNum() const {
+        size_t getColumnsNum() const {
             return c;
         }
 
-        int Rows(){
-            return r;
-        }
-        int Columns(){
-            return c;
-        }
-
-        bool dimTest(size_t row, size_t column) const {
-            if (row == r && column == c) {
-                return true;
-            } else {
-                return false;
-            }
-        }
-
-        bool dataTest(std::vector<T> test_arr) const {
-            size_t row = r;
-            size_t column = c;
-            if (test_arr.size() != row * column) {
-                return false;
-            }
-            size_t index = 0;
-            for (size_t i = 0; i < column; i++) {
-                for (size_t j = 0; j < row; j++) {
-                    if (matrix[j][i] != test_arr[index]) {
-                        return false;
-                    }
-                    index++;
-                }
-            }
-            return true;
-        }
-
-        void printData() const {
-             size_t row = r;
-             size_t column = c;
-             for (size_t i = 0; i < row; i++) {
-                 for (size_t j = 0; j < column; j++) {
-//                     std::cout << matrix[i][j] ;
-                 }
-                 std::cout << std::endl;
-             }
-             std::cout << std::endl;
-             return;
-         }
         /*
          * Matrix constructor, dim_t is the dimension of the matrix and val is the initial value for the matrix elements
          */
@@ -79,7 +34,7 @@ namespace MtmMath {
             }
             try {
                 matrix = new T *[r];
-                for (int i = 0; i < r; i++) {
+                for (size_t i = 0; i < r; i++) {
                     matrix[i] = new T[c];
                 }
             }
@@ -87,26 +42,26 @@ namespace MtmMath {
                 throw MtmExceptions::OutOfMemory();
             }
             // initializing the matrix with the default value
-            for(int i=0; i < r ; i++){
-                for(int j=0; j < c ; j++){
+            for(size_t i=0; i < r ; i++){
+                for(size_t j=0; j < c ; j++){
                     matrix[i][j] = val;
                 }
             }
         }
 
         MtmMat(const MtmMat& m) : MtmMat(Dimensions(m.r , m.c),0){
-            for (int i = 0; i < r ; ++i) {
-                for (int j = 0; j < c ; ++j) {
+            for (size_t i = 0; i < r ; ++i) {
+                for (size_t j = 0; j < c ; ++j) {
                     matrix[i][j] = m.matrix[i][j];
                 }
             }
         }
 
-
-        explicit MtmMat(const MtmVec<T>& v):MtmMat(Dimensions(((v.getOrientation() == vertical) ? v.getSize() : 1 ) , ((v.getOrientation() == horizontal) ? v.getSize() : 1)),0){
+        explicit MtmMat(const MtmVec<T>& v):MtmMat(Dimensions(((v.getOrientation() == vertical) ? v.getSize() : 1 ),
+                ((v.getOrientation() == horizontal) ? v.getSize() : 1)),0){
             int s=0;
-            for (int i = 0; i < r ; ++i) {
-                for (int j = 0; j < c ; ++j) {
+            for (size_t i = 0; i < r ; ++i) {
+                for (size_t j = 0; j < c ; ++j) {
                     matrix[i][j] = v[s];
                     s++;
                 }
@@ -121,9 +76,9 @@ namespace MtmMath {
         template <typename Func>
         MtmVec<T> matFunc(Func& f) const{
             MtmVec<T> mV(c, 0);
-            for(int i=0; i<c; i++){
+            for(size_t i=0; i<c; i++){
                 Func copyFunc = f;
-                for(int j=0; j<r; j++){
+                for(size_t j=0; j<r; j++){
                     copyFunc(matrix[j][i]);
                 }
                 mV[i] = (*copyFunc);
@@ -134,28 +89,32 @@ namespace MtmMath {
         /*
          * resizes a matrix to dimension dim, new elements gets the value val.
          */
-        virtual void resize(Dimensions dim, const T& val=T()){ // i didn't understand what is the exceptions we should check here
-            T** new_mat = new T*[dim.getRow()] ;
-            for( int i = 0 ; i < dim.getRow() ; i++ ) {
-                new_mat[i] = new T[dim.getCol()];
-            }
-            for (int i = 0; i < dim.getRow() ; ++i) {
-                for (int j = 0; j < dim.getCol() ; ++j) {
-                    if(i<r && j<c){
-                        new_mat[i][j] = matrix[i][j];
-                    } else {
-                        new_mat[i][j] = val;
+        virtual void resize(Dimensions dim, const T& val=T()){
+            try {
+                T** new_mat = new T*[dim.getRow()] ;
+                for(size_t i = 0 ; i < dim.getRow() ; i++ ) {
+                    new_mat[i] = new T[dim.getCol()];
+                }
+                for (size_t i = 0; i < dim.getRow() ; ++i) {
+                    for (size_t j = 0; j < dim.getCol() ; ++j) {
+                        if(i<r && j<c){
+                            new_mat[i][j] = matrix[i][j];
+                        } else {
+                            new_mat[i][j] = val;
+                        }
                     }
                 }
+                for (size_t k = 0; k < r ; ++k) {
+                    delete[] matrix[k];
+                }
+                delete[] matrix;
+                matrix = new_mat;
+                r = dim.getRow();
+                c = dim.getCol();
             }
-            for (int k = 0; k < r ; ++k) {
-                delete[] matrix[k];
+            catch (std::bad_alloc& excepObj){
+                throw MtmExceptions::OutOfMemory();
             }
-            delete[] matrix;
-            matrix = new_mat;
-            r = dim.getRow();
-            c = dim.getCol();
-            return;
         }
 
         /*
@@ -166,51 +125,50 @@ namespace MtmMath {
                 throw MtmExceptions::ChangeMatFail(r, c, newDim.getRow(), newDim.getCol());
             }
             T** new_mat = new T*[newDim.getRow()] ;
-            for( int i = 0 ; i < newDim.getRow() ; i++ ) {
+            for(size_t i = 0 ; i < newDim.getRow() ; i++ ) {
                 new_mat[i] = new T[newDim.getCol()];
             }
             T* tmp_arr = new T[r*c];
             int count = 0;
-            for (int i = 0; i < c ; ++i) {
-                for (int j = 0; j < r ; ++j) {
+            for (size_t i = 0; i < c ; ++i) {
+                for (size_t j = 0; j < r ; ++j) {
                     tmp_arr[count] = matrix[j][i];
                     count++;
                 }
             }
             count = 0;
-            for (int i = 0; i < newDim.getCol() ; ++i) {
-                for (int j = 0; j < newDim.getRow() ; ++j) {
+            for (size_t i = 0; i < newDim.getCol() ; ++i) {
+                for (size_t j = 0; j < newDim.getRow() ; ++j) {
                     new_mat[j][i] = tmp_arr[count];
                     count++;
                 }
             }
             delete[] tmp_arr;
-            for (int k = 0; k < r ; ++k) {
+            for (size_t k = 0; k < r ; ++k) {
                 delete[] matrix[k];
             }
             delete[] matrix;
             c = newDim.getCol();
             r = newDim.getRow();
             matrix = new_mat;
-            return;
         }
 
         /*
          * Performs transpose operation on matrix
          */
-        virtual void transpose(){
+        virtual void transpose(){       // i should check if the new matrix allocation didn't fail
             T** tr_mat = new T*[c] ;
 
-            for( int i = 0 ; i < c ; i++ ) {
+            for(size_t i = 0 ; i < c ; i++ ) {
                 tr_mat[i] = new T[r];
             }
 
-            for(int i=0; i < r ; i++){
-                for(int j=0; j < c ; j++){
+            for(size_t i=0; i < r ; i++){
+                for(size_t j=0; j < c ; j++){
                     tr_mat[j][i] = matrix[i][j];
                 }
             }
-            for (int k = 0; k < r ; ++k) {
+            for (size_t k = 0; k < r ; ++k) {
                 delete[] matrix[k];
             }
             delete[] matrix;
@@ -218,11 +176,10 @@ namespace MtmMath {
             c = r;
             r = tmp;
             matrix = tr_mat;
-            return;
         }
 
         MtmMat& operator=(const MtmMat& m) {
-            for (int k = 0; k < r ; ++k) {
+            for (size_t k = 0; k < r ; ++k) {
                 delete[] matrix[k];
             }
             delete[] matrix;
@@ -230,57 +187,58 @@ namespace MtmMath {
             c = m.c ;
 
             matrix = new T*[m.r] ;
-            for( int i = 0 ; i < m.r ; i++ ) {
+            for(size_t i = 0 ; i < m.r ; i++ ) {
                 matrix[i] = new T[m.c];
             }
-            for (int i = 0; i < r ; ++i) {
-                for (int j = 0; j < c ; ++j) {
+            for (size_t i = 0; i < r ; ++i) {
+                for (size_t j = 0; j < c ; ++j) {
                     matrix[i][j] = m.matrix[i][j];
                 }
             }
             return (*this);
         }
-        virtual T& getElement(const int i, const int j){
+
+        virtual T& getElement(const size_t i, const size_t j){
             return matrix[i][j];
         }
         class Inner{
-            T** inn_arr;
-            int row, col, num_cols;
             MtmMat* ptr;
+            T** inn_arr;
+            size_t row, col, num_cols;
         public:
-            Inner(MtmMat<T>* pointer, T** arr, const int i, const int num_of_cols) : ptr(pointer), inn_arr(arr) , row(i) ,col(0), num_cols(num_of_cols){}
-            Inner(T** arr, const int i, const int num_of_cols) : ptr(NULL), inn_arr(arr) , row(i) ,col(0), num_cols(num_of_cols){}
-            const T& operator[](const int j) const{
-                if(j >= num_cols || j < 0){
+            Inner(MtmMat<T>* pointer, T** arr, const size_t i, const size_t num_of_cols) : ptr(pointer), inn_arr(arr) , row(i) ,col(0), num_cols(num_of_cols){}
+            Inner(T** arr, const size_t i, const size_t num_of_cols) : ptr(NULL), inn_arr(arr) , row(i) ,col(0), num_cols(num_of_cols){}
+            const T& operator[](const size_t j) const{
+                if(j >= num_cols){
                     throw MtmMath::MtmExceptions::AccessIllegalElement();
                 }
                 return inn_arr[row][j];
             }
 
-            T& operator[](const int j) {
-                if(j >= num_cols || j < 0){
+            T& operator[](const size_t j) {
+                if(j >= num_cols){
                     throw MtmMath::MtmExceptions::AccessIllegalElement();
                 }
                 return ptr->getElement(row,j);
             }
         };
 
-        Inner operator[](const int i) {
-            if(i >= r || i < 0){
+        Inner operator[](const size_t i) {
+            if(i >= r){
                 throw MtmMath::MtmExceptions::AccessIllegalElement();
             }
             return Inner(this,matrix, i, c);
         }
 
-        const Inner operator[](const int i) const{
-            if(i >= r || i < 0){
+        const Inner operator[](const size_t i) const{
+            if(i >= r){
                 throw MtmMath::MtmExceptions::AccessIllegalElement();
             }
             return Inner(matrix, i, c);
         }
 
         virtual ~MtmMat(){
-            for (int k = 0; k < r ; ++k) {
+            for (size_t k = 0; k < r ; ++k) {
                 delete[] matrix[k];
             }
             delete[] matrix;
@@ -289,8 +247,8 @@ namespace MtmMath {
         class iterator{
         protected:
             T** ptr;
-            int num_of_rows, num_of_columns;
-            int curr_row, curr_column;
+            size_t num_of_rows, num_of_columns;
+            size_t curr_row, curr_column;
             MtmMat* objectPtr;
         public:
             iterator(MtmMat* p, T** matrix, int r, int c, int cu_r, int cu_l): ptr(matrix),num_of_rows(r),num_of_columns(c),curr_row(cu_r),curr_column(cu_l),objectPtr(p){}
@@ -365,8 +323,8 @@ namespace MtmMath {
             if(r != m2.r || c != m2.c){
                 throw MtmExceptions::DimensionMismatch(r,c,m2.r,m2.c);
             }
-            for (int i = 0; i < r ; ++i) {
-                for (int j = 0; j < c ; ++j) {
+            for (size_t i = 0; i < r ; ++i) {
+                for (size_t j = 0; j < c ; ++j) {
                     matrix[i][j] = matrix[i][j] + m2.matrix[i][j];
                 }
             }
@@ -377,8 +335,8 @@ namespace MtmMath {
             if(r != m2.r || c != m2.c){
                 throw MtmExceptions::DimensionMismatch(r,c,m2.r,m2.c);
             }
-            for (int i = 0; i < r ; ++i) {
-                for (int j = 0; j < c ; ++j) {
+            for (size_t i = 0; i < r ; ++i) {
+                for (size_t j = 0; j < c ; ++j) {
                     matrix[i][j] = matrix[i][j] - m2.matrix[i][j];
                 }
             }
@@ -387,8 +345,8 @@ namespace MtmMath {
 
         MtmMat operator-() {
             MtmMat<T> new_matrix(*this);
-            for (int i = 0; i < new_matrix.getRowsNum() ; ++i) {
-                for (int j = 0; j < new_matrix.getColumnsNum() ; ++j) {
+            for (size_t i = 0; i < new_matrix.getRowsNum() ; ++i) {
+                for (size_t j = 0; j < new_matrix.getColumnsNum() ; ++j) {
                     new_matrix[i][j] = new_matrix[i][j] * (-1) ;
                 }
             }
@@ -400,10 +358,10 @@ namespace MtmMath {
                 throw MtmExceptions::DimensionMismatch(m1.getRowsNum(),m1.getColumnsNum(),m2.getRowsNum(),m2.getColumnsNum());
             }
             MtmMat<T> new_matrix(Dimensions(m1.getRowsNum(),m2.getColumnsNum()),0);
-            for (int i = 0; i < m1.getRowsNum() ; ++i) {
-                for (int j = 0; j < m2.getColumnsNum() ; ++j) {
+            for (size_t i = 0; i < m1.getRowsNum() ; ++i) {
+                for (size_t j = 0; j < m2.getColumnsNum() ; ++j) {
                     T sum = 0;
-                    for (int k = 0; k < m1.getColumnsNum(); ++k) {
+                    for (size_t k = 0; k < m1.getColumnsNum(); ++k) {
                         sum = sum +  m1.matrix[i][k]*m2.matrix[k][j];
                     }
                     new_matrix.matrix[i][j] = sum;
@@ -470,8 +428,8 @@ namespace MtmMath {
     template <typename T>
     MtmMat<T> operator*(const MtmMat<T>& m, const T& n) {
         MtmMat<T> new_matrix(m);
-        for (int i = 0; i < new_matrix.getRowsNum() ; ++i) {
-            for (int j = 0; j < new_matrix.getColumnsNum() ; ++j) {
+        for (size_t i = 0; i < new_matrix.getRowsNum() ; ++i) {
+            for (size_t j = 0; j < new_matrix.getColumnsNum() ; ++j) {
                 new_matrix[i][j] = new_matrix[i][j] * n ;
             }
         }
